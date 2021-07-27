@@ -1,29 +1,18 @@
-import { useState } from "react";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import NavTabs from "./components/NavTabs";
 import Home from "./components/Home";
 import SignIn from "./components/SignIn";
 import PostCreate from "./components/PostCreate";
-import { ToastContainer, toast } from "react-toastify";
+import ProtectedRoute from "./components/ProtectedRoute";
+import useLocalStorage from "./customHooks/useLocalStorage";
+import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 
 function App() {
-  const [posts, setPosts] = useState([]);
-  const [user, setUser] = useState("");
-
-  const notify = () =>
-    toast.error("All the fields are required!", {
-      position: "top-center",
-      autoClose: 5000,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-    });
+  const [user, setUser] = useLocalStorage("user", "");
+  const [posts, setPosts] = useLocalStorage("posts", []);
 
   const addPost = (title, content) => {
-    if (!title.trim() || !content.trim()) {
-      return notify();
-    }
     setPosts((prevPosts) => {
       return [...prevPosts, { title, content, user }];
     });
@@ -46,9 +35,14 @@ function App() {
             <Route exact path="/">
               <Home posts={posts} />
             </Route>
-            <Route path="/PostCreate">
-              <PostCreate addHandler={addPost} />
-            </Route>
+            <ProtectedRoute
+              exact
+              path="/PostCreate"
+              user={user}
+              addPost={addPost}
+              component={PostCreate}
+            />
+            <Route path="/PostCreate"></Route>
             <Route path="/SignIn">
               <SignIn handleLogin={handleLogin} />
             </Route>
